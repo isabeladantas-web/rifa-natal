@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Controle — Rifa Natal Solidário</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+
+body{
+  font-family:'Segoe UI',sans-serif;
+  background:#1a0a0a;
+  min-height:100vh;
+  color:#fff;
+}
+
+/* ── HEADER ── */
+.header{
+  background:linear-gradient(180deg,#8B0000 0%,#c0392b 60%,#a93226 100%);
+  padding:20px 24px 16px;
+  text-align:center;
+  border-bottom:3px solid #ffd700;
+  position:relative;
+}
+.header-deco{font-size:1.5rem;letter-spacing:6px;opacity:.8;margin-bottom:4px}
+.header h1{font-size:1rem;font-weight:400;color:rgba(255,255,255,.8);letter-spacing:3px;text-transform:uppercase}
+.header h2{
+  font-size:2.6rem;font-weight:900;
+  color:#ffd700;
+  text-shadow:0 2px 8px rgba(0,0,0,.5);
+  letter-spacing:3px;text-transform:uppercase;line-height:1
+}
+.header h3{font-size:1.2rem;font-weight:300;color:rgba(255,255,255,.85);font-style:italic;margin-top:2px}
+.header-info{
+  display:flex;justify-content:center;gap:28px;margin-top:12px;flex-wrap:wrap
+}
+.hinfo{text-align:center}
+.hinfo .v{font-size:1.1rem;font-weight:700;color:#ffd700}
+.hinfo .l{font-size:.65rem;color:rgba(255,255,255,.65);text-transform:uppercase;letter-spacing:1px}
+
+/* ── STATS BAR ── */
+.stats{
+  display:flex;justify-content:center;gap:0;
+  background:#111;border-bottom:2px solid #333;
+  flex-wrap:wrap;
+}
+.stat{
+  flex:1;min-width:100px;padding:12px 8px;text-align:center;
+  border-right:1px solid #222;
+}
+.stat:last-child{border-right:none}
+.stat .n{font-size:1.6rem;font-weight:800}
+.stat .l{font-size:.65rem;text-transform:uppercase;letter-spacing:1px;color:#888;margin-top:2px}
+.s-disp .n{color:#4caf50}
+.s-res  .n{color:#ff9800}
+.s-pago .n{color:#ef5350}
+.s-tot  .n{color:#ffd700}
+
+/* ── PESQUISA ── */
+.toolbar{
+  display:flex;gap:10px;padding:12px 16px;
+  background:#0d0d0d;border-bottom:1px solid #222;
+  flex-wrap:wrap;align-items:center;
+}
+.search{
+  flex:1;min-width:160px;
+  background:#1e1e1e;border:1px solid #333;color:#fff;
+  padding:8px 12px;border-radius:8px;font-size:.85rem;
+  outline:none;
+}
+.search:focus{border-color:#c0392b}
+.search::placeholder{color:#555}
+
+.filter-btns{display:flex;gap:6px;flex-wrap:wrap}
+.fbtn{
+  padding:7px 14px;border:none;border-radius:20px;
+  font-size:.75rem;font-weight:600;cursor:pointer;transition:.15s;
+}
+.fbtn.active,.fbtn:hover{transform:scale(1.05)}
+.f-all  {background:#333;color:#ccc}
+.f-all.active{background:#555;color:#fff}
+.f-disp {background:#1b5e20;color:#a5d6a7}
+.f-disp.active{background:#4caf50;color:#fff}
+.f-res  {background:#e65100;color:#ffe0b2}
+.f-res.active {background:#ff9800;color:#fff}
+.f-pago {background:#7f0000;color:#ef9a9a}
+.f-pago.active{background:#ef5350;color:#fff}
+
+.btn-export{
+  margin-left:auto;
+  padding:7px 16px;border:none;border-radius:8px;
+  background:#ffd700;color:#1a0a0a;font-size:.8rem;font-weight:700;
+  cursor:pointer;transition:.15s;
+}
+.btn-export:hover{background:#f5c400}
+
+/* ── GRID ── */
+.grid-wrap{padding:16px}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(15,1fr);
+  gap:5px;
+}
+
+@media(max-width:600px){
+  .grid{grid-template-columns:repeat(10,1fr)}
+}
+
+.num{
+  aspect-ratio:1;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  border-radius:8px;
+  font-size:.7rem;font-weight:700;
+  cursor:pointer;
+  transition:all .15s ease;
+  border:2px solid transparent;
+  position:relative;
+  user-select:none;
+  overflow:hidden;
+}
+.num .n{font-size:.75rem;font-weight:800;line-height:1}
+.num .buyer{
+  font-size:.45rem;font-weight:400;
+  overflow:hidden;white-space:nowrap;text-overflow:ellipsis;
+  max-width:90%;margin-top:1px;opacity:.85;
+}
+
+.num.disponivel{background:#1b2a1b;color:#81c784;border-color:#2e7d32}
+.num.disponivel:hover{background:#2e7d32;color:#fff;transform:scale(1.12)}
+
+.num.reservado{background:#2a1a00;color:#ffb74d;border-color:#e65100}
+.num.reservado:hover{background:#e65100;color:#fff;transform:scale(1.12)}
+
+.num.pago{background:#7f0000;color:#fff;border-color:#ef5350}
+.num.pago::after{
+  content:'✓';
+  position:absolute;top:1px;right:3px;
+  font-size:.55rem;color:#ff8a80;
+}
+
+.num.hidden{display:none}
+
+/* ── MODAL ── */
+.overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,.75);z-index:200;
+  align-items:center;justify-content:center;
+  padding:16px;
+}
+.overlay.open{display:flex}
+
+.modal{
+  background:#1e1e1e;border:1px solid #333;
+  border-radius:16px;padding:28px;
+  max-width:360px;width:100%;
+  box-shadow:0 20px 60px rgba(0,0,0,.7);
+}
+.modal-num{
+  font-size:3.5rem;font-weight:900;color:#ffd700;
+  text-align:center;margin-bottom:4px;
+}
+.modal-status{
+  text-align:center;font-size:.85rem;color:#888;margin-bottom:16px;
+}
+.modal label{font-size:.8rem;color:#aaa;display:block;margin-bottom:5px}
+.modal input{
+  width:100%;background:#111;border:1px solid #333;color:#fff;
+  padding:9px 12px;border-radius:8px;font-size:.9rem;margin-bottom:14px;
+  outline:none;
+}
+.modal input:focus{border-color:#ffd700}
+.modal-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+
+.mBtn{
+  flex:1;min-width:100px;
+  padding:10px 14px;border:none;border-radius:8px;
+  font-size:.85rem;font-weight:700;cursor:pointer;transition:.15s;
+}
+.mBtn:hover{filter:brightness(1.15);transform:scale(1.03)}
+.mBtn-res   {background:#e65100;color:#fff}
+.mBtn-pago  {background:#c0392b;color:#fff}
+.mBtn-lib   {background:#2e7d32;color:#fff}
+.mBtn-cancel{background:#2a2a2a;color:#ccc}
+
+/* ── LISTA EXPORT ── */
+.export-panel{
+  display:none;
+  position:fixed;inset:0;background:rgba(0,0,0,.85);
+  z-index:300;align-items:center;justify-content:center;padding:16px;
+}
+.export-panel.open{display:flex}
+.export-box{
+  background:#1e1e1e;border:1px solid #333;border-radius:16px;
+  max-width:500px;width:100%;max-height:80vh;
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.export-head{
+  padding:16px 20px;border-bottom:1px solid #333;
+  display:flex;justify-content:space-between;align-items:center;
+}
+.export-head h3{font-size:1rem;color:#ffd700}
+.export-close{background:none;border:none;color:#888;font-size:1.3rem;cursor:pointer}
+.export-scroll{overflow-y:auto;padding:12px 20px;flex:1}
+.export-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:8px 0;border-bottom:1px solid #2a2a2a;font-size:.85rem;
+}
+.export-row:last-child{border:none}
+.exp-num{
+  width:40px;height:40px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:.9rem;
+}
+.exp-pago{background:#7f0000;color:#fff}
+.exp-res {background:#2a1a00;color:#ffb74d}
+.export-name{flex:1;padding:0 12px;color:#ddd}
+.export-status{font-size:.75rem;font-weight:600}
+.export-foot{
+  padding:12px 20px;border-top:1px solid #333;
+  display:flex;gap:10px;justify-content:flex-end;
+}
+.btn-copy-list{
+  padding:8px 18px;background:#ffd700;color:#1a0a0a;
+  border:none;border-radius:8px;font-weight:700;font-size:.8rem;cursor:pointer;
+}
+
+/* ── FOOTER ── */
+.footer{
+  text-align:center;padding:14px;
+  font-size:.7rem;color:#444;
+  border-top:1px solid #222;
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-deco">🎄 ⭐ 🎄 ⭐ 🎄</div>
+  <h1>Rifa</h1>
+  <h2>NATAL</h2>
+  <h3>Solidário!</h3>
+  <div class="header-info">
+    <div class="hinfo"><div class="v">240</div><div class="l">números</div></div>
+    <div class="hinfo"><div class="v">R$ 10,00</div><div class="l">por número</div></div>
+    <div class="hinfo"><div class="v">R$ 300</div><div class="l">prêmio</div></div>
+    <div class="hinfo"><div class="v">20/12 às 15h</div><div class="l">sorteio</div></div>
+    <div class="hinfo"><div class="v">(19)98999-4161</div><div class="l">pix</div></div>
+  </div>
+</div>
+
+<div class="stats">
+  <div class="stat s-disp"><div class="n" id="cDisp">240</div><div class="l">Disponíveis</div></div>
+  <div class="stat s-res" ><div class="n" id="cRes">0</div><div class="l">Reservados</div></div>
+  <div class="stat s-pago"><div class="n" id="cPago">0</div><div class="l">Pagos</div></div>
+  <div class="stat s-tot" ><div class="n" id="cTot">R$ 0</div><div class="l">Arrecadado</div></div>
+</div>
+
+<div class="toolbar">
+  <input class="search" id="search" placeholder="Buscar número ou nome..." oninput="filtrar()">
+  <div class="filter-btns">
+    <button class="fbtn f-all  active" data-f="all"   onclick="setFiltro(this)">Todos</button>
+    <button class="fbtn f-disp"        data-f="disp"  onclick="setFiltro(this)">Disponíveis</button>
+    <button class="fbtn f-res"         data-f="res"   onclick="setFiltro(this)">Reservados</button>
+    <button class="fbtn f-pago"        data-f="pago"  onclick="setFiltro(this)">Pagos</button>
+  </div>
+  <button class="btn-export" onclick="abrirExport()">📋 Ver lista</button>
+</div>
+
+<div class="grid-wrap">
+  <div class="grid" id="grid"></div>
+</div>
+
+<div class="footer">
+  Clique em um número para registrar · Estado salvo automaticamente no navegador
+</div>
+
+<!-- MODAL NÚMERO -->
+<div class="overlay" id="overlay" onclick="fecharModal(event)">
+  <div class="modal">
+    <div class="modal-num" id="mNum">—</div>
+    <div class="modal-status" id="mStatus"></div>
+    <label>Nome do participante (opcional)</label>
+    <input id="mNome" placeholder="Ex: Maria Silva" onkeydown="if(event.key==='Enter')document.getElementById('mBtnPago').click()">
+    <div class="modal-actions" id="mActions"></div>
+  </div>
+</div>
+
+<!-- PAINEL LISTA -->
+<div class="export-panel" id="exportPanel" onclick="fecharExport(event)">
+  <div class="export-box">
+    <div class="export-head">
+      <h3>📋 Lista de participantes</h3>
+      <button class="export-close" onclick="fecharExport()">✕</button>
+    </div>
+    <div class="export-scroll" id="exportScroll"></div>
+    <div class="export-foot">
+      <button class="btn-copy-list" onclick="copiarLista()">Copiar lista</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const TOTAL = 240;
+const KEY   = 'rifa_natal_solidario_2026';
+
+let dados = JSON.parse(localStorage.getItem(KEY) || '{}');
+// dados[n] = { status: 'disponivel'|'reservado'|'pago', nome: '' }
+
+let filtroAtivo = 'all';
+let numSel = null;
+
+/* ─── RENDER GRID ─── */
+function renderGrid() {
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  for (let i = 1; i <= TOTAL; i++) {
+    const d = dados[i] || { status: 'disponivel', nome: '' };
+    const el = document.createElement('div');
+    el.className = `num ${d.status}`;
+    el.dataset.n = i;
+    el.innerHTML = `<div class="n">${i}</div>${d.nome ? `<div class="buyer">${d.nome}</div>` : ''}`;
+    el.addEventListener('click', abrirModal);
+    grid.appendChild(el);
+  }
+  atualizarStats();
+  aplicarFiltro();
+}
+
+/* ─── STATS ─── */
+function atualizarStats() {
+  let disp=0, res=0, pago=0;
+  for (let i=1;i<=TOTAL;i++) {
+    const s = (dados[i]||{}).status || 'disponivel';
+    if (s==='disponivel') disp++;
+    else if (s==='reservado') res++;
+    else pago++;
+  }
+  document.getElementById('cDisp').textContent = disp;
+  document.getElementById('cRes' ).textContent = res;
+  document.getElementById('cPago').textContent = pago;
+  document.getElementById('cTot' ).textContent = `R$ ${(pago*10).toLocaleString('pt-BR')}`;
+}
+
+/* ─── FILTRO / BUSCA ─── */
+function setFiltro(btn) {
+  filtroAtivo = btn.dataset.f;
+  document.querySelectorAll('.fbtn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('search').value = '';
+  aplicarFiltro();
+}
+
+function filtrar() {
+  aplicarFiltro();
+}
+
+function aplicarFiltro() {
+  const q = document.getElementById('search').value.toLowerCase().trim();
+  document.querySelectorAll('.num').forEach(el => {
+    const n  = parseInt(el.dataset.n);
+    const d  = dados[n] || { status:'disponivel', nome:'' };
+    const st = d.status;
+
+    const matchFiltro =
+      filtroAtivo === 'all' ||
+      (filtroAtivo === 'disp' && st === 'disponivel') ||
+      (filtroAtivo === 'res'  && st === 'reservado')  ||
+      (filtroAtivo === 'pago' && st === 'pago');
+
+    const matchBusca = !q ||
+      String(n).includes(q) ||
+      (d.nome||'').toLowerCase().includes(q);
+
+    el.classList.toggle('hidden', !(matchFiltro && matchBusca));
+  });
+}
+
+/* ─── MODAL ─── */
+function abrirModal(ev) {
+  numSel = parseInt(ev.currentTarget.dataset.n);
+  const d = dados[numSel] || { status:'disponivel', nome:'' };
+
+  document.getElementById('mNum').textContent = String(numSel).padStart(3,'0');
+  const labels = { disponivel:'🟢 Disponível', reservado:'🟠 Reservado', pago:'🔴 Pago ✓' };
+  document.getElementById('mStatus').textContent = labels[d.status];
+  document.getElementById('mNome').value = d.nome || '';
+
+  const acts = document.getElementById('mActions');
+  acts.innerHTML = '';
+
+  if (d.status === 'disponivel') {
+    acts.innerHTML = `
+      <button class="mBtn mBtn-res"  onclick="setStatus('reservado')">🟠 Reservar</button>
+      <button id="mBtnPago" class="mBtn mBtn-pago" onclick="setStatus('pago')">🔴 Marcar Pago</button>`;
+  } else if (d.status === 'reservado') {
+    acts.innerHTML = `
+      <button id="mBtnPago" class="mBtn mBtn-pago" onclick="setStatus('pago')">🔴 Confirmar Pago</button>
+      <button class="mBtn mBtn-lib"  onclick="setStatus('disponivel')">🟢 Liberar</button>`;
+  } else {
+    acts.innerHTML = `
+      <button class="mBtn mBtn-res"  onclick="setStatus('reservado')">🟠 Voltar p/ Reservado</button>
+      <button class="mBtn mBtn-lib"  onclick="setStatus('disponivel')">🟢 Liberar número</button>`;
+  }
+  acts.innerHTML += `<button class="mBtn mBtn-cancel" onclick="fecharModal()">Fechar</button>`;
+
+  document.getElementById('overlay').classList.add('open');
+  setTimeout(() => document.getElementById('mNome').focus(), 100);
+}
+
+function setStatus(status) {
+  const nome = document.getElementById('mNome').value.trim();
+  if (status === 'disponivel') {
+    delete dados[numSel];
+  } else {
+    dados[numSel] = { status, nome };
+  }
+  localStorage.setItem(KEY, JSON.stringify(dados));
+  renderGrid();
+  document.getElementById('overlay').classList.remove('open');
+}
+
+function fecharModal(e) {
+  if (!e || e.target === document.getElementById('overlay'))
+    document.getElementById('overlay').classList.remove('open');
+}
+
+/* ─── EXPORT ─── */
+function abrirExport() {
+  const scroll = document.getElementById('exportScroll');
+  const items = [];
+
+  for (let i=1;i<=TOTAL;i++) {
+    const d = dados[i];
+    if (d && d.status !== 'disponivel') items.push({ n:i, ...d });
+  }
+
+  if (!items.length) {
+    scroll.innerHTML = '<div style="color:#666;text-align:center;padding:24px">Nenhum número reservado ou pago ainda.</div>';
+  } else {
+    scroll.innerHTML = items.map(it => `
+      <div class="export-row">
+        <div class="exp-num ${it.status==='pago'?'exp-pago':'exp-res'}">${String(it.n).padStart(3,'0')}</div>
+        <div class="export-name">${it.nome || '<span style="color:#555">sem nome</span>'}</div>
+        <div class="export-status" style="color:${it.status==='pago'?'#ef5350':'#ff9800'}">
+          ${it.status==='pago'?'Pago ✓':'Reservado'}
+        </div>
+      </div>`).join('');
+  }
+
+  document.getElementById('exportPanel').classList.add('open');
+}
+
+function fecharExport(e) {
+  if (!e || e.target === document.getElementById('exportPanel'))
+    document.getElementById('exportPanel').classList.remove('open');
+}
+
+function copiarLista() {
+  const lines = [`RIFA NATAL SOLIDÁRIO — ${new Date().toLocaleDateString('pt-BR')}\n`];
+  let pagos=0, res=0;
+  for (let i=1;i<=TOTAL;i++) {
+    const d = dados[i];
+    if (!d || d.status==='disponivel') continue;
+    const st = d.status==='pago' ? '✅ PAGO' : '🟡 RESERVADO';
+    lines.push(`Nº ${String(i).padStart(3,'0')} — ${d.nome||'(sem nome)'} — ${st}`);
+    if (d.status==='pago') pagos++; else res++;
+  }
+  lines.push(`\nTotal pagos: ${pagos} | Reservados: ${res} | Arrecadado: R$ ${pagos*10}`);
+
+  navigator.clipboard.writeText(lines.join('\n')).then(() => {
+    const btn = document.querySelector('.btn-copy-list');
+    btn.textContent = '✅ Copiado!';
+    setTimeout(()=>btn.textContent='Copiar lista', 2000);
+  });
+}
+
+/* ─── INIT ─── */
+renderGrid();
+</script>
+</body>
+</html>
